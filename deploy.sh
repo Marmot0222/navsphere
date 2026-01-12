@@ -39,6 +39,13 @@ fi
 echo "✅ 数据目录检查通过"
 echo ""
 
+# 设置数据目录权限
+echo "🔧 设置数据目录权限..."
+sudo chown -R 1001:1001 navsphere/content/
+sudo chmod -R 755 navsphere/content/
+echo "✅ 权限设置完成"
+echo ""
+
 # 停止旧容器
 echo "🛑 停止旧容器..."
 docker-compose -f docker/docker-compose.prod.yml down
@@ -64,6 +71,10 @@ echo ""
 echo "访问地址："
 echo "  前台：http://your-server-ip:3000"
 echo "  后台：http://your-server-ip:3000/admin"
+echo ""
+echo "数据目录挂载："
+echo "  宿主机：$(pwd)/navsphere/content"
+echo "  容器内：/app/navsphere/content"
 echo ""
 echo "常用命令："
 echo "  查看日志：docker-compose -f docker/docker-compose.prod.yml logs -f"
