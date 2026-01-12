@@ -37,12 +37,15 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 # 设置正确的权限
-RUN mkdir -p .next navsphere/content
-RUN chown -R nextjs:nodejs .next navsphere
+RUN mkdir -p .next navsphere/content && \
+    chown -R nextjs:nodejs .next navsphere
 
 # 复制构建产物和依赖
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# 切换到 nextjs 用户前，确保数据目录可写
+RUN chmod -R 775 navsphere/content
 
 USER nextjs
 

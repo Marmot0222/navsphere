@@ -41,8 +41,20 @@ echo ""
 
 # 设置数据目录权限
 echo "🔧 设置数据目录权限..."
+echo "  目标目录: $(pwd)/navsphere/content"
+echo "  设置所有者: 1001:1001 (nextjs用户)"
+echo "  设置权限: 775 (所有者和组可读写执行，其他用户可读执行)"
+
+# 设置所有者和权限
 sudo chown -R 1001:1001 navsphere/content/
-sudo chmod -R 755 navsphere/content/
+sudo chmod -R 775 navsphere/content/
+
+# 验证权限设置
+echo ""
+echo "验证权限设置:"
+ls -ld navsphere/content/
+ls -lh navsphere/content/
+
 echo "✅ 权限设置完成"
 echo ""
 
@@ -62,6 +74,24 @@ docker-compose -f docker/docker-compose.prod.yml up -d
 echo ""
 echo "📊 检查容器状态..."
 docker-compose -f docker/docker-compose.prod.yml ps
+
+# 等待服务完全启动
+echo ""
+echo "⏳ 等待服务启动..."
+sleep 5
+
+# 验证容器内权限
+echo ""
+echo "🔍 验证容器内数据目录权限..."
+docker-compose -f docker/docker-compose.prod.yml exec -T app ls -la /app/navsphere/content/ || echo "⚠️  无法验证容器内权限，请手动检查"
+
+# 测试写入权限
+echo ""
+echo "📝 测试文件写入权限..."
+docker-compose -f docker/docker-compose.prod.yml exec -T app touch /app/navsphere/content/.write-test 2>/dev/null && \
+  docker-compose -f docker/docker-compose.prod.yml exec -T app rm /app/navsphere/content/.write-test 2>/dev/null && \
+  echo "✅ 写入权限正常" || \
+  echo "❌ 写入权限异常，请检查文件权限设置"
 
 echo ""
 echo "========================================"
