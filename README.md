@@ -4,13 +4,6 @@
   <strong>完全本地化的现代导航管理平台</strong>
 </p>
 
-<p align="center">
-  <a href="https://github.com/tianyaxiang/NavSphere/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/tianyaxiang/NavSphere?style=flat-square"></a>
-  <a href="https://github.com/tianyaxiang/NavSphere/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/tianyaxiang/NavSphere?style=flat-square"></a>
-  <a href="https://github.com/tianyaxiang/NavSphere/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/tianyaxiang/NavSphere?style=flat-square"></a>
-  <a href="https://github.com/tianyaxiang/NavSphere/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/tianyaxiang/NavSphere?style=flat-square"></a>
-</p>
-
 ## 📖 项目简介
 
 NavSphere 是一个基于 Next.js 15 构建的**完全本地化**导航管理平台，专为个人和团队打造的书签管理和导航门户解决方案。
@@ -67,7 +60,7 @@ NavSphere 是一个基于 Next.js 15 构建的**完全本地化**导航管理平
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/tianyaxiang/NavSphere.git
+git clone https://github.com/Marmot0222/navsphere
 cd NavSphere
 ```
 
@@ -328,22 +321,6 @@ NavSphere/
 3. 在 Docker 环境中，检查数据卷映射配置
 </details>
 
-## 💖 支持项目
-
-如果这个项目对你有帮助，欢迎 Star 支持！
-
-## 🌐 联系方式
-
-[Email](mailto:tianyaxiang@qq.com) | [Twitter](https://x.com/tianyaxiang)
-
-## 🤝 贡献指南
-
-我们欢迎所有形式的贡献！
-
-1. **报告问题**: 在 [Issues](https://github.com/tianyaxiang/NavSphere/issues) 中报告 bug
-2. **功能建议**: 提出新功能想法
-3. **代码贡献**: 提交 Pull Request
-4. **文档改进**: 完善项目文档
 
 ## 📜 许可证
 
