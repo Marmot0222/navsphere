@@ -21,6 +21,24 @@ fi
 echo "✅ Docker 和 Docker Compose 已安装"
 echo ""
 
+# 检查数据目录
+echo "📂 检查数据目录..."
+if [ ! -d "navsphere/content" ]; then
+    echo "❌ 数据目录不存在，请确保 navsphere/content 目录存在"
+    exit 1
+fi
+
+if [ ! -f "navsphere/content/navigation.json" ] || [ ! -f "navsphere/content/site.json" ]; then
+    echo "⚠️  数据文件不完整，请检查以下文件是否存在："
+    echo "   - navsphere/content/navigation.json"
+    echo "   - navsphere/content/site.json"
+    echo "   - navsphere/content/resource-metadata.json"
+    exit 1
+fi
+
+echo "✅ 数据目录检查通过"
+echo ""
+
 # 停止旧容器
 echo "🛑 停止旧容器..."
 docker-compose -f docker/docker-compose.prod.yml down

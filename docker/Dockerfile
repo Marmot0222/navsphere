@@ -36,12 +36,9 @@ RUN adduser --system --uid 1001 nextjs
 # 复制构建产物
 COPY --from=builder /app/public ./public
 
-# 复制数据目录（本地化数据存储）
-COPY --from=builder /app/navsphere ./navsphere
-
 # 设置正确的权限
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir -p .next navsphere/content
+RUN chown -R nextjs:nodejs .next navsphere
 
 # 复制构建产物和依赖
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

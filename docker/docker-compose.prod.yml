@@ -10,8 +10,8 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      # 挂载数据目录，确保数据持久化
-      - ./navsphere/content:/app/navsphere/content
+      # 挂载数据目录，确保数据持久化（使用绝对路径）
+      - ../navsphere/content:/app/navsphere/content
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
