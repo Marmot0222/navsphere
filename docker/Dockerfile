@@ -1,5 +1,5 @@
-# 使用官方 Node.js 18 Alpine 镜像作为基础镜像
-FROM node:18-alpine AS base
+# 使用官方 Node.js 20 Alpine 镜像作为基础镜像
+FROM node:20-alpine AS base
 
 # 安装依赖阶段
 FROM base AS deps
@@ -35,6 +35,9 @@ RUN adduser --system --uid 1001 nextjs
 
 # 复制构建产物
 COPY --from=builder /app/public ./public
+
+# 复制数据目录（本地化数据存储）
+COPY --from=builder /app/navsphere ./navsphere
 
 # 设置正确的权限
 RUN mkdir .next
