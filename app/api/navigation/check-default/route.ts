@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { getFileContent } from '@/lib/github'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     try {
       const defaultData = await getFileContent('navsphere/content/navigation-default.json')
       

@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { commitFile, getFileContent } from '@/lib/github'
 import type { NavigationData, NavigationItem } from '@/types/navigation'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function DELETE(
   request: Request,
@@ -11,11 +10,6 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     const { categoryId } = await request.json()
     if (!categoryId) {
       return NextResponse.json({ error: 'Category ID is required' }, { status: 400 })
@@ -50,8 +44,7 @@ export async function DELETE(
     await commitFile(
       'navsphere/content/navigation.json',
       JSON.stringify({ navigationItems: updatedNavigations }, null, 2),
-      `Delete category: ${categoryId}`,
-      session.user.accessToken
+      `Delete category: ${categoryId}`
     )
 
     return NextResponse.json({ success: true })

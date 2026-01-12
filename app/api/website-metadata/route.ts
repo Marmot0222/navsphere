@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { uint8ArrayToBase64 } from '@/lib/buffer-utils'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 interface WebsiteMetadata {
     title: string
@@ -12,11 +11,6 @@ interface WebsiteMetadata {
 
 export async function POST(request: Request) {
     try {
-        const session = await auth()
-        if (!session?.user?.accessToken) {
-            return new Response('Unauthorized', { status: 401 })
-        }
-
         const { url } = await request.json()
 
         if (!url || !isValidUrl(url)) {
@@ -30,10 +24,10 @@ export async function POST(request: Request) {
             throw new Error('Failed to fetch valid metadata')
         }
 
-        // 如果获取到了 favicon，下载并上传到 GitHub
+        // 如果获取到了 favicon，下载并上传到本地
         if (metadata.icon) {
             try {
-                const iconUrl = await downloadAndUploadIcon(metadata.icon, session.user.accessToken)
+                const iconUrl = await downloadAndUploadIcon(metadata.icon)
                 metadata.icon = iconUrl
 
             } catch (error) {
@@ -41,7 +35,7 @@ export async function POST(request: Request) {
                 // 如果图标下载失败，尝试使用 Google favicon 服务
                 try {
                     const domain = new URL(url).hostname
-                    const fallbackIconUrl = await downloadGoogleFavicon(domain, session.user.accessToken)
+                    const fallbackIconUrl = await downloadGoogleFavicon(domain)
                     metadata.icon = fallbackIconUrl
                 } catch (fallbackError) {
                     console.warn('Failed to download Google favicon:', fallbackError)
@@ -221,7 +215,7 @@ function extractFavicon(html: string, baseUrl: string): string | null {
     return `https://www.google.com/s2/favicons?sz=128&domain=${base.hostname}`
 }
 
-async function downloadGoogleFavicon(domain: string, token: string): Promise<string> {
+async function downloadGoogleFavicon(domain: string): Promise<string> {
     const googleFaviconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${domain}`
 
     try {
@@ -236,7 +230,7 @@ async function downloadGoogleFavicon(domain: string, token: string): Promise<str
         if (response.ok) {
             const arrayBuffer = await response.arrayBuffer()
             const binaryData = new Uint8Array(arrayBuffer)
-            const { path } = await uploadImageToGitHub(binaryData, token, 'png')
+            const { path } = await uploadImageToLocal(binaryData, 'png')
             return path
         } else {
             throw new Error(`Failed to download Google favicon: ${response.status}`)
@@ -246,7 +240,7 @@ async function downloadGoogleFavicon(domain: string, token: string): Promise<str
     }
 }
 
-async function downloadAndUploadIcon(iconUrl: string, token: string): Promise<string> {
+async function downloadAndUploadIcon(iconUrl: string): Promise<string> {
     // 多种策略尝试下载favicon
     const strategies: Array<{ headers: HeadersInit; delay?: number }> = [
         // 策略1: 完整浏览器模拟
@@ -282,8 +276,8 @@ async function downloadAndUploadIcon(iconUrl: string, token: string): Promise<st
                 const arrayBuffer = await response.arrayBuffer()
                 const binaryData = new Uint8Array(arrayBuffer)
 
-                // 上传到 GitHub
-                const { path } = await uploadImageToGitHub(binaryData, token, getFileExtension(iconUrl))
+                // 上传到本地
+                const { path } = await uploadImageToLocal(binaryData, getFileExtension(iconUrl))
                 return path
             } else {
                 lastError = new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -313,38 +307,27 @@ function getFileExtension(url: string): string {
     }
 }
 
-async function uploadImageToGitHub(binaryData: Uint8Array, token: string, extension: string = 'png'): Promise<{ path: string, commitHash: string }> {
-    const owner = process.env.GITHUB_OWNER!
-    const repo = process.env.GITHUB_REPO!
-    const branch = process.env.GITHUB_BRANCH || 'main'
-    const path = `/assets/favicon_${Date.now()}.${extension}`
-    const githubPath = 'public' + path
-
-    // Convert Uint8Array to Base64
-    const base64String = uint8ArrayToBase64(binaryData)
-    const currentFileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${githubPath}?ref=${branch}`
-
-    const response = await fetch(currentFileUrl, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-        },
-        body: JSON.stringify({
-            message: `Upload favicon ${githubPath}`,
-            content: base64String,
-            branch: branch,
-        }),
-    })
-
-    if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Failed to upload image to GitHub:', errorData)
-        throw new Error(`Failed to upload image to GitHub: ${errorData.message || 'Unknown error'}`)
+async function uploadImageToLocal(binaryData: Uint8Array, extension: string = 'png'): Promise<{ path: string, commitHash: string }> {
+    const fileName = `favicon_${Date.now()}.${extension}`
+    const path = `/assets/${fileName}`
+    const fullPath = `public${path}`
+    
+    // 确保 public/assets目录存在
+    const fs = require('fs').promises
+    const pathModule = require('path')
+    const assetsDir = pathModule.join(process.cwd(), 'public', 'assets')
+    
+    try {
+        await fs.access(assetsDir)
+    } catch {
+        await fs.mkdir(assetsDir, { recursive: true })
     }
-
-    const responseData = await response.json()
-    const commitHash = responseData.commit.sha
-
+    
+    // 写入文件
+    const filePath = pathModule.join(process.cwd(), fullPath)
+    await fs.writeFile(filePath, binaryData)
+    
+    const commitHash = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
     return { path, commitHash }
 }

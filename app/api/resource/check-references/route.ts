@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getFileContent } from '@/lib/github'
 import type { NavigationData } from '@/types/navigation'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {

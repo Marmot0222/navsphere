@@ -1,52 +1,16 @@
-import NextAuth from 'next-auth'
-import GithubProvider from 'next-auth/providers/github'
-import type { DefaultSession, NextAuthConfig } from 'next-auth'
+// 认证功能已移除，所有用户默认为管理员权限
+// GitHub API 访问使用环境变量中的 GITHUB_TOKEN
 
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      accessToken?: string
-    } & DefaultSession['user']
-  }
-  interface JWT {
-    accessToken?: string
-  }
-  interface User {
-    accessToken?: string
-  }
+export async function auth() {
+  // 返回一个模拟的 session，确保兼容性
+  return null
 }
 
-const config = {
-  providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
-      authorization: {
-        params: { scope: 'repo' }
-      }
-    })
-  ],
-  callbacks: {
-    async jwt({ token, account }) {
-      if (account?.access_token) {
-        token.accessToken = account.access_token
-      }
-      return token
-    },
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.accessToken = token.accessToken as string
-      }
-      return session
-    }
-  },
-  pages: {
-    signIn: '/auth/signin'
-  },
-  secret: process.env.GITHUB_SECRET
-} satisfies NextAuthConfig
+// 导出空的处理器以保持 API 路由兼容
+export const GET = async () => {
+  return new Response('Authentication disabled', { status: 404 })
+}
 
-const handler = NextAuth(config)
-
-export const auth = handler.auth
-export const { handlers: { GET, POST } } = handler
+export const POST = async () => {
+  return new Response('Authentication disabled', { status: 404 })
+}

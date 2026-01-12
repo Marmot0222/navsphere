@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getFileContent } from '@/lib/github'
 import { NavigationCategory } from '@/types/navigation'
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {

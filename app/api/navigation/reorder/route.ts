@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { commitFile, getFileContent } from '@/lib/github'
 import type { NavigationData, NavigationItem } from '@/types/navigation'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     const { sourceIndex, destinationIndex, itemId } = await request.json()
     
     // 获取当前导航数据
@@ -34,12 +28,11 @@ export async function POST(request: Request) {
     // 更新数据
     data.navigationItems = updatedItems
 
-    // 提交更改到 GitHub
+    // 提交更改到本地
     await commitFile(
       'navsphere/content/navigation.json', 
       JSON.stringify(data, null, 2), 
-      `重新排序导航项 - ${new Date().toISOString()}`,
-      session.user.accessToken
+      `重新排序导航项 - ${new Date().toISOString()}`
     )
 
     return NextResponse.json(data.navigationItems, { status: 200 })

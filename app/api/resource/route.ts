@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { commitFile, getFileContent } from '@/lib/github'
 import type { ResourceMetadata } from '@/types/resource-metadata'
 import { uint8ArrayToBase64 } from '@/lib/buffer-utils'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 
 
@@ -23,17 +22,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const session = await auth();
-        if (!session?.user?.accessToken) {
-            return new Response('Unauthorized', { status: 401 });
-        }
-
         const { image } = await request.json(); // Get the Base64 image
         const base64Data = image.split(",")[1]; // Extract the Base64 part
         const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0)); // Convert Base64 to binary
 
         // 获取上传结果，包含路径和 commit hash
-        const { path: imageUrl, commitHash } = await uploadImageToGitHub(binaryData, session.user.accessToken);
+        const { path: imageUrl, commitHash } = await uploadImageToLocal(binaryData);
 
         // Handle metadata
         const metadata = await getFileContent('navsphere/content/resource-metadata.json') as ResourceMetadata;
@@ -46,8 +40,7 @@ export async function POST(request: Request) {
         await commitFile(
             'navsphere/content/resource-metadata.json',
             JSON.stringify(metadata, null, 2),
-            'Update resource metadata',
-            session.user.accessToken
+            'Update resource metadata'
         );
 
         return NextResponse.json({ success: true, imageUrl });
@@ -60,49 +53,35 @@ export async function POST(request: Request) {
     }
 }
 
-// Function to upload image to GitHub
-async function uploadImageToGitHub(binaryData: Uint8Array, token: string): Promise<{ path: string, commitHash: string }> {
-    const owner = process.env.GITHUB_OWNER!;
-    const repo = process.env.GITHUB_REPO!;
-    const branch = process.env.GITHUB_BRANCH || 'main'
-    const path = `/assets/img_${Date.now()}.png`; // Generate a unique path for the image
-    const githubPath = 'public' + path;
-
-    // Convert Uint8Array to Base64
-    const base64String = uint8ArrayToBase64(binaryData); // Use Buffer to convert to Base64
-    const currentFileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${githubPath}?ref=${branch}`
-    // Use fetch to upload the file to GitHub
-    const response = await fetch(currentFileUrl, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-        },
-        body: JSON.stringify({
-            message: `Upload ${githubPath}`,
-            content: base64String, // Send only the Base64 string
-            branch: branch, // Explicitly specify the branch
-        }),
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Failed to upload image to GitHub:', errorData);
-        throw new Error(`Failed to upload image to GitHub: ${errorData.message || 'Unknown error'}`);
+// 上传图片到本地
+async function uploadImageToLocal(binaryData: Uint8Array): Promise<{ path: string, commitHash: string }> {
+    const fileName = `img_${Date.now()}.png`
+    const path = `/assets/${fileName}`
+    const fullPath = `public${path}`
+    
+    // 确保 public/assets目录存在
+    const fs = require('fs').promises
+    const pathModule = require('path')
+    const assetsDir = pathModule.join(process.cwd(), 'public', 'assets')
+    
+    try {
+        await fs.access(assetsDir)
+    } catch {
+        await fs.mkdir(assetsDir, { recursive: true })
     }
-
-    const responseData = await response.json();
-    const commitHash = responseData.commit.sha; // 获取 commit hash
-
-    return { path, commitHash }; // Return the URL of the uploaded image
+    
+    // 写入文件
+    const filePath = pathModule.join(process.cwd(), fullPath)
+    await fs.writeFile(filePath, binaryData)
+    
+    // 生成一个简单的 hash作为 commitHash
+    const commitHash = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    return { path, commitHash }
 }
 
 export async function DELETE(request: Request) {
     try {
-        const session = await auth();
-        if (!session?.user?.accessToken) {
-            return new Response('Unauthorized', { status: 401 });
-        }
-
         const { resourceHashes } = await request.json();
 
         if (!Array.isArray(resourceHashes) || resourceHashes.length === 0) {
@@ -121,8 +100,7 @@ export async function DELETE(request: Request) {
         await commitFile(
             'navsphere/content/resource-metadata.json',
             JSON.stringify(metadata, null, 2),
-            `Delete ${deletedCount} resource(s)`,
-            session.user.accessToken
+            `Delete ${deletedCount} resource(s)`
         );
 
         // 注意：这里只是从元数据中删除了引用，实际的图片文件仍然存在于GitHub仓库中

@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { signOut } from 'next-auth/react'
 import { useTheme } from "next-themes"
 import { Moon, Sun, Monitor } from "lucide-react"
 
@@ -67,13 +66,6 @@ export function UserNav({ user }: UserNavProps) {
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-red-600 cursor-pointer"
-          onClick={() => signOut({ callbackUrl: '/' })}
-        >
-          退出登录
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

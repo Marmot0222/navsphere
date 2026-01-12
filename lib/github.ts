@@ -1,115 +1,82 @@
-import { auth } from '@/lib/auth'
-import { stringToBase64 } from '@/lib/buffer-utils'
+import { promises as fs } from 'fs'
+import path from 'path'
 
-export async function getFileContent(path: string) {
-  const owner = process.env.GITHUB_OWNER!
-  const repo = process.env.GITHUB_REPO!
-  const branch = process.env.GITHUB_BRANCH || 'main'
+// 本地数据存储目录（使用 navsphere/content 以便前台可以直接导入）
+const DATA_DIR = path.join(process.cwd(), 'navsphere', 'content')
 
+// 确保数据目录存在
+async function ensureDataDir() {
   try {
-    const session = await auth()
-    const token = session?.user?.accessToken
+    await fs.access(DATA_DIR)
+  } catch {
+    await fs.mkdir(DATA_DIR, { recursive: true })
+  }
+}
 
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`
-    const response = await fetch(apiUrl, {
-      headers: {
-        Accept: 'application/vnd.github.v3.raw',
-        Authorization: token ? `token ${token}` : '',
-        'User-Agent': 'NavSphere',
-      },
-    })
+// 获取文件完整路径
+function getFilePath(relativePath: string): string {
+  // 移除路径前缀，只保留文件名
+  const fileName = relativePath.split('/').pop() || relativePath
+  return path.join(DATA_DIR, fileName)
+}
 
-    if (response.status === 404) {
-      console.log(`File not found: ${path}, returning default data`)
-      if (path.includes('navigation.json')) {
-        return { navigationItems: [] }
-      }
-      return {}
-    }
-
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    return data
-  } catch (error) {
-    console.error('Error fetching file:', error)
-    if (path.includes('navigation.json')) {
+// 读取文件内容
+export async function getFileContent(filePath: string) {
+  await ensureDataDir()
+  
+  const fullPath = getFilePath(filePath)
+  
+  try {
+    const content = await fs.readFile(fullPath, 'utf-8')
+    return JSON.parse(content)
+  } catch (error: any) {
+    console.log(`File not found: ${filePath}, returning default data`)
+    
+    // 返回默认数据结构
+    if (filePath.includes('navigation.json')) {
       return { navigationItems: [] }
+    }
+    if (filePath.includes('site.json')) {
+      return {
+        basic: {
+          title: 'NavSphere',
+          description: '导航管理系统',
+          keywords: '导航,网站,管理'
+        },
+        appearance: {
+          logo: '',
+          favicon: '',
+          theme: 'system'
+        },
+        navigation: {
+          linkTarget: '_blank'
+        }
+      }
+    }
+    if (filePath.includes('resource-metadata.json')) {
+      return { metadata: [] }
     }
     return {}
   }
 }
 
+// 保存文件内容
 export async function commitFile(
-  path: string,
+  filePath: string,
   content: string,
   message: string,
-  token: string,
-  retryCount = 3
+  _token?: string  // 保留参数以保持 API 兼容性，但不使用
 ) {
-  const owner = process.env.GITHUB_OWNER!
-  const repo = process.env.GITHUB_REPO!
-  const branch = process.env.GITHUB_BRANCH || 'main'
-
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-  for (let attempt = 1; attempt <= retryCount; attempt++) {
-    try {
-      // 1. 获取当前文件信息（如果存在）
-      const currentFileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`
-      const currentFileResponse = await fetch(currentFileUrl, {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json',
-          'User-Agent': 'NavSphere',
-        },
-        cache: 'no-store', // 禁用缓存，确保获取最新的文件信息
-      })
-
-      let sha = undefined
-      if (currentFileResponse.ok) {
-        const currentFile = await currentFileResponse.json()
-        sha = currentFile.sha
-      }
-
-      // 2. 创建或更新文件
-      const updateUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
-      const response = await fetch(updateUrl, {
-        method: 'PUT',
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'NavSphere',
-        },
-        body: JSON.stringify({
-          message,
-          content: stringToBase64(content),
-          sha,
-          branch,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        if (attempt < retryCount && error.message?.includes('sha')) {
-          console.log(`Attempt ${attempt} failed, retrying after delay...`)
-          await delay(1000 * attempt) // 指数退避
-          continue
-        }
-        throw new Error(`Failed to commit file: ${error.message}`)
-      }
-
-      return await response.json()
-    } catch (error) {
-      if (attempt === retryCount) {
-        console.error('Error in commitFile:', error)
-        throw error
-      }
-      console.log(`Attempt ${attempt} failed, retrying...`)
-      await delay(1000 * attempt)
-    }
+  await ensureDataDir()
+  
+  const fullPath = getFilePath(filePath)
+  
+  try {
+    await fs.writeFile(fullPath, content, 'utf-8')
+    console.log(`File saved: ${filePath}`)
+    return { success: true, message }
+  } catch (error) {
+    console.error('Error saving file:', error)
+    throw new Error(`Failed to save file: ${(error as Error).message}`)
   }
 } 

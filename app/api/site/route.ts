@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { commitFile, getFileContent } from '@/lib/github'
 import type { SiteInfo } from '@/types/site'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {
@@ -31,19 +30,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     const data: SiteInfo = await request.json()
     
-    // 提交到 GitHub
+    // 提交到本地
     await commitFile(
       'navsphere/content/site.json',
       JSON.stringify(data, null, 2),
-      'Update site configuration',
-      session.user.accessToken
+      'Update site configuration'
     )
 
     return NextResponse.json({ success: true })

@@ -14,8 +14,16 @@
           "enabled": true
         },
         {
+          "id": "1_1",
+          "title": "Google Analytics123",
+          "href": "https://analytics.google.com/",
+          "description": "Google分析（Google Analytics）是一个由Google所提供的网站流量统计服务。",
+          "icon": "/assets/images/logos/analytics.webp",
+          "enabled": true
+        },
+        {
           "id": "1_3",
-          "title": "Cloudflare",
+          "title": "Cloudflare1231",
           "href": "https://dash.cloudflare.com/",
           "description": "Cloudflare以向客户提供基于反向代理的内容分发网络及分布式域名解析服务为主要业务。",
           "icon": "/assets/images/logos/cloudflar.webp",
@@ -1488,6 +1496,49 @@
               "href": "https://unsplash.com/",
               "description": "免费高清图片",
               "icon": "/assets/images/logos/unsplash.webp",
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1760512235168",
+      "title": "开源项目",
+      "icon": "Code",
+      "description": "",
+      "enabled": true,
+      "items": [],
+      "subCategories": [
+        {
+          "id": "c58e0eb7-8d56-46cc-a00e-841e07500066",
+          "title": "文档工具",
+          "icon": "Edit",
+          "description": "",
+          "enabled": true,
+          "items": [
+            {
+              "id": "1760512389014",
+              "title": "Docusaurus",
+              "href": "https://docusaurus.io/",
+              "description": "Build optimized websites quickly, focus on your content.",
+              "icon": "/assets/favicon_1760512394163.webp",
+              "enabled": true
+            },
+            {
+              "id": "1760512493923",
+              "title": "VuePress",
+              "href": "https://vuepress.vuejs.org/",
+              "description": "Vue 驱动的静态网站生成器",
+              "icon": "/assets/favicon_1760512644195.webp",
+              "enabled": true
+            },
+            {
+              "id": "1765310098728",
+              "title": "mdBook Documentation",
+              "href": "https://rust-lang.github.io/mdBook/index.html",
+              "description": "Create book from markdown files. Like Gitbook but implemented in Rust",
+              "icon": "/assets/img_1765686772245.webp",
               "enabled": true
             }
           ]

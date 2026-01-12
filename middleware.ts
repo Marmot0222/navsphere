@@ -1,19 +1,9 @@
-import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// 认证功能已移除，允许直接访问管理页面
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    const session = await auth()
-
-    if (!session?.user) {
-      const callbackUrl = request.url
-      return NextResponse.redirect(
-        new URL(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`, request.url)
-      )
-    }
-  }
-
+  // 所有用户默认拥有管理员权限，无需认证
   return NextResponse.next()
 }
 

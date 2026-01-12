@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { signOut } from 'next-auth/react'
 import { Button } from "@/registry/new-york/ui/button"
 import { Separator } from "@/registry/new-york/ui/separator"
 import {
@@ -13,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  LogOut,
   Home,
   Moon,
   Sun,
@@ -316,14 +314,6 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
                           </DropdownMenuItem>
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="cursor-pointer flex items-center text-red-600 focus:text-red-600 focus:bg-red-100"
-                        onClick={() => signOut({ callbackUrl: '/' })}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        退出登录
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

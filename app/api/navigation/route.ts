@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { commitFile, getFileContent } from '@/lib/github'
 import type { NavigationData, NavigationItem } from '@/types/navigation'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {
@@ -18,7 +17,7 @@ export async function GET() {
   }
 }
 
-async function validateAndSaveNavigationData(data: any, accessToken: string) {
+async function validateAndSaveNavigationData(data: any) {
   // 详细的数据结构验证和日志
   console.log('Received navigation data:', JSON.stringify(data, null, 2))
   
@@ -54,20 +53,14 @@ async function validateAndSaveNavigationData(data: any, accessToken: string) {
   await commitFile(
     'navsphere/content/navigation.json',
     JSON.stringify(data, null, 2),
-    'Update navigation data',
-    accessToken
+    'Update navigation data'
   )
 }
 
 export async function POST(request: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     const data = await request.json()
-    await validateAndSaveNavigationData(data, session.user.accessToken)
+    await validateAndSaveNavigationData(data)
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -84,13 +77,8 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     const data = await request.json()
-    await validateAndSaveNavigationData(data, session.user.accessToken)
+    await validateAndSaveNavigationData(data)
 
     return NextResponse.json({ success: true })
   } catch (error) {

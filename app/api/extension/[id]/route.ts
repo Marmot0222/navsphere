@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { commitFile, getFileContent } from '@/lib/github'
 import type { NavigationData, NavigationItem } from '@/types/navigation'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function PUT(
   request: Request,
@@ -11,11 +10,6 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const session = await auth()
-    if (!session?.user?.accessToken) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
     const updatedItem: NavigationItem = await request.json()
     const data = await getFileContent('navsphere/content/navigation.json') as NavigationData
     
@@ -58,8 +52,7 @@ export async function PUT(
     await commitFile(
       'navsphere/content/navigation.json',
       JSON.stringify({ navigationItems: updatedItems }, null, 2),
-      'Update navigation item',
-      session.user.accessToken
+      'Update navigation item'
     )
 
     return NextResponse.json(mergedItem)

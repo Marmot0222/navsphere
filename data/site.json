@@ -1,0 +1,15 @@
+{
+  "basic": {
+    "title": "NavSphere",
+    "description": "导航管理系统",
+    "keywords": "导航,网站,管理"
+  },
+  "appearance": {
+    "logo": "",
+    "favicon": "",
+    "theme": "system"
+  },
+  "navigation": {
+    "linkTarget": "_blank"
+  }
+}

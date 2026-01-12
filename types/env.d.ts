@@ -1,8 +1,6 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    NEXTAUTH_URL: string
-    NEXTAUTH_SECRET: string
-    GITHUB_CLIENT_ID: string
-    GITHUB_SECRET: string
+    // 本地化存储，不需要额外环境变量
+    NEXT_PUBLIC_API_URL?: string
   }
 } 

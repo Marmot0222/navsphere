@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import navigationData from '@/navsphere/content/navigation.json'
+import { getFileContent } from '@/lib/github'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {
+    const navigationData = await getFileContent('navsphere/content/navigation.json')
     return NextResponse.json(navigationData, {
       headers: {
         'Cache-Control': 's-maxage=3600, stale-while-revalidate',

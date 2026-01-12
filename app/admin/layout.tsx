@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
 import { AdminLayoutClient } from './AdminLayoutClient'
 import { Toaster } from "@/registry/new-york/ui/toaster"
 import { Metadata } from 'next'
@@ -19,21 +17,16 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-
-  if (!session?.user) {
-    redirect('/auth/signin')
+  // 认证功能已移除，所有用户默认为管理员权限
+  const defaultUser = {
+    name: 'Admin',
+    email: 'admin@navsphere.local',
+    image: null
   }
 
   return (
     <>
-      <AdminLayoutClient
-        user={{
-          name: session.user.name,
-          email: session.user.email,
-          image: session.user.image
-        }}
-      >
+      <AdminLayoutClient user={defaultUser}>
         {children}
       </AdminLayoutClient>
       <Toaster />
