@@ -4,7 +4,7 @@ FROM node:20-alpine AS base
 # 安装依赖阶段
 FROM base AS deps
 # 检查 https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat curl
 WORKDIR /app
 
 # 安装依赖
@@ -26,6 +26,9 @@ RUN corepack enable pnpm && pnpm run build
 # 运行阶段
 FROM base AS runner
 WORKDIR /app
+
+# 安装必要的工具
+RUN apk add --no-cache curl wget
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
