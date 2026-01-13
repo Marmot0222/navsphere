@@ -9,6 +9,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - BODY_SIZE_LIMIT=10485760  # 10MB body limit
     volumes:
       # 挂载数据目录，确保数据持久化
       - ../navsphere/content:/app/navsphere/content

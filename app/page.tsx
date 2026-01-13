@@ -5,6 +5,10 @@ import { Container } from '@/components/ui/container'
 import type { SiteConfig } from '@/types/site'
 import { getFileContent } from '@/lib/github'
 
+// 禁用页面缓存，确保每次都读取最新数据
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function getData() {
   // 从本地文件动态读取数据，确保后台修改后能立即生效
   const navigationData = await getFileContent('navsphere/content/navigation.json')
