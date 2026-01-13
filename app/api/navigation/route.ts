@@ -3,6 +3,8 @@ import { commitFile, getFileContent } from '@/lib/github'
 import type { NavigationData, NavigationItem } from '@/types/navigation'
 
 export const runtime = 'nodejs'
+// 增加请求体大小限制为 10MB
+export const maxDuration = 60 // 最大执行时间 60 秒
 
 export async function GET() {
   try {
@@ -18,8 +20,8 @@ export async function GET() {
 }
 
 async function validateAndSaveNavigationData(data: any) {
-  // 详细的数据结构验证和日志
-  console.log('Received navigation data:', JSON.stringify(data, null, 2))
+  // 简化日志输出，避免大数据量日志
+  console.log('Received navigation data with', data?.navigationItems?.length || 0, 'items')
   
   // 严格验证数据结构
   if (!data || typeof data !== 'object') {
@@ -46,7 +48,7 @@ async function validateAndSaveNavigationData(data: any) {
   )
 
   if (invalidItems.length > 0) {
-    console.error('Invalid navigation items:', invalidItems)
+    console.error('Invalid navigation items count:', invalidItems.length)
     throw new Error('Invalid navigation data: some items are malformed')
   }
 
