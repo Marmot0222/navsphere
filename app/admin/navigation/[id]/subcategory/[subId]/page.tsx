@@ -1,5 +1,6 @@
 'use client'
-export const runtime = 'edge'
+// 移除 edge runtime，改用默认 nodejs runtime 以避免 API 调用问题
+// export const runtime = 'edge'
 
 import * as React from "react"
 import { useState, useEffect } from 'react'

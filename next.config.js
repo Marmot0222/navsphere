@@ -3,23 +3,6 @@ const nextConfig = {
   // Docker 部署支持
   output: 'standalone',
 
-  // API 路由配置
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb', // 请求体大小限制
-    },
-    responseLimit: '10mb', // 响应体大小限制
-  },
-
-  // 实验性功能配置
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost', 'newkit.site'],
-      bodySizeLimit: '10mb'
-    },
-    optimizePackageImports: ['lucide-react', 'date-fns', 'lodash']
-  },
-
   images: {
     domains: [
       'dash.cloudflare.com',
@@ -45,6 +28,13 @@ const nextConfig = {
         destination: '/auth/:path*'
       }
     ]
+  },
+  // Cloudflare Pages configuration
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost', 'newkit.site']
+    },
+    optimizePackageImports: ['lucide-react', 'date-fns', 'lodash']
   }
 }
 

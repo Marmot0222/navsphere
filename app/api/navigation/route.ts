@@ -3,8 +3,20 @@ import { commitFile, getFileContent } from '@/lib/github'
 import type { NavigationData, NavigationItem } from '@/types/navigation'
 
 export const runtime = 'nodejs'
-// 增加请求体大小限制为 10MB
 export const maxDuration = 60 // 最大执行时间 60 秒
+
+// 配置请求体大小（App Router 方式）
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
+// 增加请求体大小限制到 10MB
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
 
 export async function GET() {
   try {
@@ -61,10 +73,20 @@ async function validateAndSaveNavigationData(data: any) {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json()
+    // 使用流式读取请求体，支持大数据
+    const text = await request.text()
+    const data = JSON.parse(text)
+    
+    console.log('Saving navigation data...')
     await validateAndSaveNavigationData(data)
+    console.log('Navigation data saved successfully')
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true }, { 
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
   } catch (error) {
     console.error('Failed to save navigation data:', error)
     return NextResponse.json(
@@ -79,10 +101,20 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const data = await request.json()
+    // 使用流式读取请求体，支持大数据
+    const text = await request.text()
+    const data = JSON.parse(text)
+    
+    console.log('Updating navigation data...')
     await validateAndSaveNavigationData(data)
+    console.log('Navigation data updated successfully')
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true }, { 
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
   } catch (error) {
     console.error('Failed to update navigation data:', error)
     return NextResponse.json(
